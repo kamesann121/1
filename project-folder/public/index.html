@@ -6,11 +6,25 @@
   <style>
     body { margin: 0; overflow: hidden; }
     canvas { display: block; }
+    #log-box {
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 10px;
+      font-family: monospace;
+      z-index: 999;
+      max-height: 100vh;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
+  <div id="log-box"></div>
+
   <script src="libs/three.min.js"></script>
-  <script src="libs/inflate.min.js"></script> <!-- 必要なら -->
+  <script src="libs/inflate.min.js"></script>
   <script src="libs/FBXLoader.js"></script>
   <script src="main.js"></script>
 </body>
