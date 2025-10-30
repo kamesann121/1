@@ -19,7 +19,7 @@ function log(message) {
 function init() {
   log('init 開始');
 
-  log('FBXLoaderの型: ' + typeof THREE.FBXLoader); // ← ここが追加されたログ！
+  log('FBXLoaderの型: ' + typeof THREE.FBXLoader);
 
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -39,6 +39,11 @@ function init() {
   log('character.fbx 読み込み開始');
 
   loader.load('model/character.fbx', function (object) {
+    if (!object) {
+      log('character.fbx 読み込み失敗: 読み込まれたオブジェクトがnullです');
+      return;
+    }
+
     log('character.fbx 読み込み成功');
     character = object;
     character.scale.set(0.1, 0.1, 0.1);
@@ -84,6 +89,11 @@ function loadAnimation(name, path) {
   log(`${name}.fbx 読み込み開始`);
   const loader = new THREE.FBXLoader();
   loader.load(path, function (anim) {
+    if (!anim || !anim.animations || anim.animations.length === 0) {
+      log(`${name}.fbx 読み込み失敗: アニメーションが見つかりません`);
+      return;
+    }
+
     log(`${name}.fbx 読み込み成功`);
     animations[name] = mixer.clipAction(anim.animations[0]);
   }, undefined, function (error) {
