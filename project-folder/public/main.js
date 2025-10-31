@@ -20,8 +20,6 @@ function log(message) {
 function init() {
   log('init 開始');
 
-  log('FBXLoaderの型: ' + typeof THREE.FBXLoader);
-
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xa0a0a0);
 
@@ -45,8 +43,8 @@ function init() {
   document.body.appendChild(renderer.domElement);
   log('renderer 作成完了');
 
-  // OrbitControlsでマウス視点操作
-  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  // OrbitControlsの初期化（グローバルスコープ用）
+  controls = new OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 50, 0);
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
