@@ -1,6 +1,7 @@
 let scene, camera, renderer, mixer, character;
 const clock = new THREE.Clock();
 const animations = {};
+let velocity = new THREE.Vector3();
 
 log('main.js 読み込まれた');
 
@@ -22,9 +23,8 @@ function init() {
   log('FBXLoaderの型: ' + typeof THREE.FBXLoader);
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xa0a0a0); // 背景色を明るく
+  scene.background = new THREE.Color(0xa0a0a0);
 
-  // 地面（平地）
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(1000, 1000),
     new THREE.MeshStandardMaterial({ color: 0x808080 })
@@ -33,12 +33,12 @@ function init() {
   ground.receiveShadow = true;
   scene.add(ground);
 
-  // グリッド（補助線）
   const grid = new THREE.GridHelper(1000, 40);
   scene.add(grid);
 
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 150, 300);
+  camera.position.set(0, 100, -200);
+  camera.lookAt(0, 50, 0);
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -61,8 +61,8 @@ function init() {
 
     log('character.fbx 読み込み成功');
     character = object;
-    character.scale.set(0.1, 0.1, 0.1);
-    character.position.set(0, 0, 0); // 地面の中心に配置
+    character.scale.set(0.2, 0.2, 0.2); // ← ちょっと大きめ！
+    character.position.set(0, 0, 0);
     scene.add(character);
     mixer = new THREE.AnimationMixer(character);
 
@@ -75,29 +75,33 @@ function init() {
 
   document.addEventListener('keydown', (event) => {
     if (!character) return;
-    stopAllAnimations();
 
     switch (event.key.toLowerCase()) {
       case 'q':
-        character.position.x -= 10;
+        velocity.x = -2;
         if (animations.walk) animations.walk.play();
         break;
       case 'c':
-        character.position.x += 10;
+        velocity.x = 2;
         if (animations.walk) animations.walk.play();
         break;
       case 'e':
-        character.position.z -= 10;
+        velocity.z = -2;
         if (animations.run) animations.run.play();
         break;
       case 's':
-        character.position.z += 10;
+        velocity.z = 2;
         if (animations.walk) animations.walk.play();
         break;
       case ' ':
         if (animations.jump) animations.jump.play();
         break;
     }
+  });
+
+  document.addEventListener('keyup', () => {
+    velocity.set(0, 0, 0);
+    stopAllAnimations();
   });
 }
 
@@ -127,5 +131,16 @@ function animate() {
   requestAnimationFrame(animate);
   const delta = clock.getDelta();
   if (mixer) mixer.update(delta);
+
+  if (character) {
+    character.position.add(velocity);
+
+    // 三人称視点カメラ追従
+    const offset = new THREE.Vector3(0, 100, -200);
+    const targetPosition = character.position.clone().add(offset);
+    camera.position.lerp(targetPosition, 0.1);
+    camera.lookAt(character.position.clone().add(new THREE.Vector3(0, 50, 0)));
+  }
+
   renderer.render(scene, camera);
 }
