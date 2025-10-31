@@ -61,7 +61,7 @@ function init() {
 
     log('character.fbx 読み込み成功');
     character = object;
-    character.scale.set(0.2, 0.2, 0.2); // ← ちょっと大きめ！
+    character.scale.set(0.2, 0.2, 0.2);
     character.position.set(0, 0, 0);
     scene.add(character);
     mixer = new THREE.AnimationMixer(character);
@@ -78,23 +78,27 @@ function init() {
 
     switch (event.key.toLowerCase()) {
       case 'q':
-        velocity.x = -2;
-        if (animations.walk) animations.walk.play();
+        velocity.x = 2; // 右へ
+        playAnimation('walk');
         break;
       case 'c':
-        velocity.x = 2;
-        if (animations.walk) animations.walk.play();
+        velocity.x = -2; // 左へ
+        playAnimation('walk');
         break;
       case 'e':
-        velocity.z = -2;
-        if (animations.run) animations.run.play();
+        velocity.z = -2; // 前へ
+        playAnimation('run');
         break;
       case 's':
-        velocity.z = 2;
-        if (animations.walk) animations.walk.play();
+        velocity.z = 2; // 後ろへ
+        playAnimation('walk');
         break;
       case ' ':
-        if (animations.jump) animations.jump.play();
+        playAnimation('jump');
+        character.position.y += 50;
+        setTimeout(() => {
+          character.position.y -= 50;
+        }, 500);
         break;
     }
   });
@@ -115,10 +119,25 @@ function loadAnimation(name, path) {
     }
 
     log(`${name}.fbx 読み込み成功`);
-    animations[name] = mixer.clipAction(anim.animations[0]);
+    const action = mixer.clipAction(anim.animations[0]);
+    action.setEffectiveWeight(1);
+    action.setEffectiveTimeScale(1);
+    action.setLoop(THREE.LoopRepeat);
+    action.clampWhenFinished = true;
+    action.enable = true;
+    action.reset();
+    animations[name] = action;
   }, undefined, function (error) {
     log(`${name}.fbx 読み込み失敗: ` + error);
   });
+}
+
+function playAnimation(name) {
+  stopAllAnimations();
+  if (animations[name]) {
+    animations[name].reset();
+    animations[name].play();
+  }
 }
 
 function stopAllAnimations() {
@@ -135,7 +154,6 @@ function animate() {
   if (character) {
     character.position.add(velocity);
 
-    // 三人称視点カメラ追従
     const offset = new THREE.Vector3(0, 100, -200);
     const targetPosition = character.position.clone().add(offset);
     camera.position.lerp(targetPosition, 0.1);
