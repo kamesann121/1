@@ -48,6 +48,8 @@ function init() {
   // OrbitControlsでマウス視点操作
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.target.set(0, 50, 0);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.05;
   controls.update();
 
   const light = new THREE.DirectionalLight(0xffffff, 1);
@@ -83,19 +85,19 @@ function init() {
 
     switch (event.key.toLowerCase()) {
       case 'q':
-        velocity.x = 2; // 右へ
+        velocity.x = 2;
         playAnimation('walk');
         break;
       case 'c':
-        velocity.x = -2; // 左へ
+        velocity.x = -2;
         playAnimation('walk');
         break;
       case 's':
-        velocity.z = -2; // 前へ
+        velocity.z = -2;
         playAnimation('walk');
         break;
       case 'e':
-        velocity.z = 2; // 後ろへ
+        velocity.z = 2;
         playAnimation('run');
         break;
       case ' ':
@@ -139,7 +141,7 @@ function loadAnimation(name, path) {
 function playAnimation(name) {
   stopAllAnimations();
   if (animations[name]) {
-    animations[name].play(); // reset() は削除！
+    animations[name].play();
   }
 }
 
@@ -157,8 +159,8 @@ function animate() {
   if (character) {
     character.position.add(velocity);
     controls.target.copy(character.position.clone().add(new THREE.Vector3(0, 50, 0)));
-    controls.update();
   }
 
+  controls.update();
   renderer.render(scene, camera);
 }
