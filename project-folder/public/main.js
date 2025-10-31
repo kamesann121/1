@@ -118,12 +118,18 @@ function loadAnimation(name, path) {
   log(`${name}.fbx 読み込み開始`);
   const loader = new THREE.FBXLoader();
   loader.load(path, function (anim) {
-    if (!anim || !anim.animations || anim.animations.length === 0) {
+    if (!anim) {
+      log(`${name}.fbx 読み込み失敗: animがnullです`);
+      return;
+    }
+
+    log(`${name}.fbx 読み込み成功: ${anim.animations.length}個のアニメーション`);
+
+    if (!anim.animations || anim.animations.length === 0) {
       log(`${name}.fbx 読み込み失敗: アニメーションが見つかりません`);
       return;
     }
 
-    log(`${name}.fbx 読み込み成功`);
     const action = mixer.clipAction(anim.animations[0]);
     action.setEffectiveWeight(1);
     action.setEffectiveTimeScale(1);
@@ -131,6 +137,8 @@ function loadAnimation(name, path) {
     action.clampWhenFinished = true;
     action.enable = true;
     animations[name] = action;
+
+    log(`${name} アニメーション登録完了`);
   }, undefined, function (error) {
     log(`${name}.fbx 読み込み失敗: ` + error);
   });
