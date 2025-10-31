@@ -1,4 +1,4 @@
-let scene, camera, renderer, mixer, character;
+let scene, camera, renderer, mixer, character, controls;
 const clock = new THREE.Clock();
 const animations = {};
 let velocity = new THREE.Vector3();
@@ -37,13 +37,18 @@ function init() {
   scene.add(grid);
 
   camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.set(0, 100, -200);
+  camera.position.set(0, 80, -120);
   camera.lookAt(0, 50, 0);
 
   renderer = new THREE.WebGLRenderer();
   renderer.setSize(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
   log('renderer 作成完了');
+
+  // OrbitControlsでマウス視点操作
+  controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 50, 0);
+  controls.update();
 
   const light = new THREE.DirectionalLight(0xffffff, 1);
   light.position.set(0, 200, 100);
@@ -85,13 +90,13 @@ function init() {
         velocity.x = -2; // 左へ
         playAnimation('walk');
         break;
-      case 'e':
-        velocity.z = -2; // 前へ
-        playAnimation('run');
-        break;
       case 's':
-        velocity.z = 2; // 後ろへ
+        velocity.z = -2; // 前へ
         playAnimation('walk');
+        break;
+      case 'e':
+        velocity.z = 2; // 後ろへ
+        playAnimation('run');
         break;
       case ' ':
         playAnimation('jump');
@@ -125,7 +130,6 @@ function loadAnimation(name, path) {
     action.setLoop(THREE.LoopRepeat);
     action.clampWhenFinished = true;
     action.enable = true;
-    action.reset();
     animations[name] = action;
   }, undefined, function (error) {
     log(`${name}.fbx 読み込み失敗: ` + error);
@@ -135,8 +139,7 @@ function loadAnimation(name, path) {
 function playAnimation(name) {
   stopAllAnimations();
   if (animations[name]) {
-    animations[name].reset();
-    animations[name].play();
+    animations[name].play(); // reset() は削除！
   }
 }
 
@@ -153,11 +156,8 @@ function animate() {
 
   if (character) {
     character.position.add(velocity);
-
-    const offset = new THREE.Vector3(0, 100, -200);
-    const targetPosition = character.position.clone().add(offset);
-    camera.position.lerp(targetPosition, 0.1);
-    camera.lookAt(character.position.clone().add(new THREE.Vector3(0, 50, 0)));
+    controls.target.copy(character.position.clone().add(new THREE.Vector3(0, 50, 0)));
+    controls.update();
   }
 
   renderer.render(scene, camera);
